@@ -1,9 +1,9 @@
 {
     "halls": {
-        "Bruin Caf\u00e9": {
+        "b-cafe": {
             "link": "https://dining.ucla.edu/bruin-cafe/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "Closed",
                     "lunch": "Closed",
                     "dinner": "Closed",
@@ -11,10 +11,10 @@
                 }
             }
         },
-        "Bruin Plate": {
+        "b-plate": {
             "link": "https://dining.ucla.edu/bruin-plate/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "7:00 a.m. - 10:00 a.m.",
                     "lunch": "11:30 a.m. - 2:00 p.m.",
                     "dinner": "5:00 p.m. - 9:00 p.m.",
@@ -22,10 +22,10 @@
                 }
             }
         },
-        "Caf\u00e9 1919": {
+        "cafe-1919": {
             "link": "https://dining.ucla.edu/cafe-1919/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "Closed",
                     "lunch": "Closed",
                     "dinner": "Closed",
@@ -33,10 +33,10 @@
                 }
             }
         },
-        "De Neve Dining": {
+        "de-neve": {
             "link": "https://dining.ucla.edu/de-neve-dining/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "9 a.m. - 10:00 a.m.",
                     "lunch": "11:00 a.m. - 3:00 p.m.",
                     "dinner": "5:00 p.m. - 9:00 p.m.",
@@ -44,10 +44,10 @@
                 }
             }
         },
-        "Epicuria at Ackerman": {
+        "epic-ackerman": {
             "link": "https://dining.ucla.edu/epicuria-at-ackerman/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "Closed",
                     "lunch": "Closed",
                     "dinner": "Closed",
@@ -55,10 +55,10 @@
                 }
             }
         },
-        "Epicuria at Covel": {
+        "epic-covel": {
             "link": "https://dining.ucla.edu/epicuria-at-covel/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "Closed",
                     "lunch": "Closed",
                     "dinner": "Closed",
@@ -66,21 +66,10 @@
                 }
             }
         },
-        "Food Trucks": {
-            "link": "https://dining.ucla.edu/meal-swipe-exchange/",
-            "hours": {
-                "sunday": {
-                    "breakfast": "Closed",
-                    "lunch": "Closed",
-                    "dinner": "5:00 p.m. to 8:30 p.m.",
-                    "ext_dinner": "9:00 p.m. \u2013 12:00 a.m."
-                }
-            }
-        },
-        "Rendezvous": {
+        "rende": {
             "link": "https://dining.ucla.edu/rendezvous/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "Closed",
                     "lunch": "11:00 a.m. - 3:00 p.m.",
                     "dinner": "5:00 p.m. - 9:00 p.m.",
@@ -88,21 +77,10 @@
                 }
             }
         },
-        "Spice Kitchen at Bruin Bowl": {
-            "link": "https://dining.ucla.edu/spice-kitchen/",
-            "hours": {
-                "sunday": {
-                    "breakfast": "Closed",
-                    "lunch": "Closed",
-                    "dinner": "Closed",
-                    "ext_dinner": "Closed"
-                }
-            }
-        },
-        "The Drey": {
+        "drey": {
             "link": "https://dining.ucla.edu/the-drey/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "Closed",
                     "lunch": "Closed",
                     "dinner": "Closed",
@@ -110,10 +88,10 @@
                 }
             }
         },
-        "The Study at Hedrick": {
+        "study": {
             "link": "https://dining.ucla.edu/the-study-at-hedrick/",
             "hours": {
-                "sunday": {
+                "sun": {
                     "breakfast": "Closed",
                     "lunch": "11:00 a.m. - 3:00 p.m.",
                     "dinner": "5:00 p.m. - 9:00 p.m.",
@@ -122,6 +100,68 @@
             }
         }
     },
-    "trucks": {},
+    "trucks": {
+        "week_of": "May 25 \u2013 May 31, 2025",
+        "sproul": {
+            "sun": {
+                "5 p.m. \u2013 8:30 p.m.": "",
+                "0 p.m. \u2013 12 a.m.": "Habibi Shack"
+            },
+            "mon": {
+                "5 p.m. \u2013 8:30 p.m.": "Perro 1-10 Tacos",
+                "0 p.m. \u2013 12 a.m.": "Don Poll\u00f3n"
+            },
+            "tue": {
+                "5 p.m. \u2013 8:30 p.m.": "Heritage Kitchen",
+                "0 p.m. \u2013 12 a.m.": "Rice Balls of Fire"
+            },
+            "wed": {
+                "5 p.m. \u2013 8:30 p.m.": "Uncle Al\u2019s Barbeque",
+                "0 p.m. \u2013 12 a.m.": "Perro 1-10 Tacos"
+            },
+            "thu": {
+                "5 p.m. \u2013 8:30 p.m.": "Kalamaki Greek Street Food",
+                "0 p.m. \u2013 12 a.m.": "8E8 Thai Street Food"
+            },
+            "fri": {
+                "5 p.m. \u2013 8:30 p.m.": "Vchos Pupuser\u00eda Moderna",
+                "0 p.m. \u2013 12 a.m.": "El Gallo Yucateco"
+            },
+            "sat": {
+                "5 p.m. \u2013 8:30 p.m.": "",
+                "0 p.m. \u2013 12 a.m.": "Aloha Fridays"
+            }
+        },
+        "rieber": {
+            "sun": {
+                "5 p.m. \u2013 8:30 p.m.": "",
+                "0 p.m. \u2013 12 a.m.": ""
+            },
+            "mon": {
+                "5 p.m. \u2013 8:30 p.m.": "",
+                "0 p.m. \u2013 12 a.m.": "BittieBitez Mini-Donuts"
+            },
+            "tue": {
+                "5 p.m. \u2013 8:30 p.m.": "Cerda vega Tacos",
+                "0 p.m. \u2013 12 a.m.": "BittieBitez Mini-Donuts"
+            },
+            "wed": {
+                "5 p.m. \u2013 8:30 p.m.": "The Taco Cartel",
+                "0 p.m. \u2013 12 a.m.": "Salpic\u00f3n"
+            },
+            "thu": {
+                "5 p.m. \u2013 8:30 p.m.": "Pinch of Flavor",
+                "0 p.m. \u2013 12 a.m.": "Salpic\u00f3n"
+            },
+            "fri": {
+                "5 p.m. \u2013 8:30 p.m.": "Pinch of Flavor",
+                "0 p.m. \u2013 12 a.m.": "Salpic\u00f3n"
+            },
+            "sat": {
+                "5 p.m. \u2013 8:30 p.m.": "",
+                "0 p.m. \u2013 12 a.m.": ""
+            }
+        }
+    },
     "ASUCLA": {}
 }
