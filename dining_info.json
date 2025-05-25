@@ -1,0 +1,127 @@
+{
+    "halls": {
+        "Bruin Caf\u00e9": {
+            "link": "https://dining.ucla.edu/bruin-cafe/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "Closed",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "Bruin Plate": {
+            "link": "https://dining.ucla.edu/bruin-plate/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "7:00 a.m. - 10:00 a.m.",
+                    "lunch": "11:30 a.m. - 2:00 p.m.",
+                    "dinner": "5:00 p.m. - 9:00 p.m.",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "Caf\u00e9 1919": {
+            "link": "https://dining.ucla.edu/cafe-1919/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "Closed",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "De Neve Dining": {
+            "link": "https://dining.ucla.edu/de-neve-dining/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "9 a.m. - 10:00 a.m.",
+                    "lunch": "11:00 a.m. - 3:00 p.m.",
+                    "dinner": "5:00 p.m. - 9:00 p.m.",
+                    "ext_dinner": "10:00 p.m. - 12:00 a.m."
+                }
+            }
+        },
+        "Epicuria at Ackerman": {
+            "link": "https://dining.ucla.edu/epicuria-at-ackerman/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "Closed",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "Epicuria at Covel": {
+            "link": "https://dining.ucla.edu/epicuria-at-covel/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "Closed",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "Food Trucks": {
+            "link": "https://dining.ucla.edu/meal-swipe-exchange/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "5:00 p.m. to 8:30 p.m.",
+                    "ext_dinner": "9:00 p.m. \u2013 12:00 a.m."
+                }
+            }
+        },
+        "Rendezvous": {
+            "link": "https://dining.ucla.edu/rendezvous/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "11:00 a.m. - 3:00 p.m.",
+                    "dinner": "5:00 p.m. - 9:00 p.m.",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "Spice Kitchen at Bruin Bowl": {
+            "link": "https://dining.ucla.edu/spice-kitchen/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "Closed",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "The Drey": {
+            "link": "https://dining.ucla.edu/the-drey/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "Closed",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
+        "The Study at Hedrick": {
+            "link": "https://dining.ucla.edu/the-study-at-hedrick/",
+            "hours": {
+                "sunday": {
+                    "breakfast": "Closed",
+                    "lunch": "11:00 a.m. - 3:00 p.m.",
+                    "dinner": "5:00 p.m. - 9:00 p.m.",
+                    "ext_dinner": "9:00 p.m. - 12:00 a.m."
+                }
+            }
+        }
+    },
+    "trucks": {},
+    "ASUCLA": {}
+}
