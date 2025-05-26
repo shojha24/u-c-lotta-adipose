@@ -77,6 +77,17 @@
                 }
             }
         },
+        "feast": {
+            "link": "https://dining.ucla.edu/spice-kitchen/",
+            "hours": {
+                "sun": {
+                    "breakfast": "Closed",
+                    "lunch": "Closed",
+                    "dinner": "Closed",
+                    "ext_dinner": "Closed"
+                }
+            }
+        },
         "drey": {
             "link": "https://dining.ucla.edu/the-drey/",
             "hours": {

@@ -3,11 +3,42 @@ import requests
 from datetime import datetime
 import json
 
+urls = {
+    "hours": "https://dining.ucla.edu/dining-locations/",
+    "b-plate": "https://dining.ucla.edu/bruin-plate/",
+    "de-neve": "https://dining.ucla.edu/de-neve-dining/",
+    "epic-covel": "https://dining.ucla.edu/epicuria-at-covel/", 
+    "epic-ackerman": "https://dining.ucla.edu/epicuria-at-ackerman/",
+    "drey": "https://dining.ucla.edu/the-drey/",
+    "study": "https://dining.ucla.edu/the-study-at-hedrick/",
+    "rende": "https://dining.ucla.edu/rendezvous/",
+    "b-cafe": "https://dining.ucla.edu/bruin-cafe/",
+    "cafe-1919": "https://dining.ucla.edu/cafe-1919/",
+    "feast": "https://dining.ucla.edu/spice-kitchen/",
+    "trucks": "https://dining.ucla.edu/meal-swipe-exchange/"
+}
+
+
 class Scraper:
-    def __init__(self, urls):
+    def __init__(self, urls=urls):
         self.urls = urls
         self.curr_soup = None
         self.load_data()
+        self.names_to_abbr = {
+            "Bruin Plate": "b-plate",
+            "De Neve Dining": "de-neve",
+            "Epicuria at Covel": "epic-covel",
+            "Epicuria at Ackerman": "epic-ackerman",
+            "The Drey": "drey",
+            "The Study at Hedrick": "study",
+            "Rendezvous": "rende",
+            "Bruin Caf\u00e9": "b-cafe",
+            "Caf\u00e9 1919": "cafe-1919",
+            "Spice Kitchen at Bruin Bowl": "feast"
+        }
+        self.labels = {'sesame', 'peanut', 'vegetarian', 'high-carbon', 'vegan', 
+                       'soy', 'wheat', 'tree-nuts', 'dairy', 'gluten', 'alcohol', 
+                       'halal', 'eggs', 'low-carbon', 'crustacean-shellfish', 'fish'}
 
     def save_data(self, filename='dining_info.json'):
         try:
@@ -48,6 +79,7 @@ class Scraper:
         # check if hours have already been parsed for this day of the week: halls -> location -> hours -> day of week
         if ("drey" in self.data["halls"]) and day_of_week in self.data["halls"]["drey"]["hours"]:
             print(f"Hours for {day_of_week} already parsed.")
+            return
         
         schedule_table = self.curr_soup.find('table', {'class': 'dining-hours-table'})
         
@@ -58,8 +90,8 @@ class Scraper:
             if iter_elem.name == 'a':
                 loc_name = iter_elem.text.strip()
 
-                if loc_name not in self.data["halls"] and loc_name in names_to_abbr:
-                    loc_name = names_to_abbr[loc_name]
+                if loc_name not in self.data["halls"] and loc_name in self.names_to_abbr:
+                    loc_name = self.names_to_abbr[loc_name]
                     loc_url = iter_elem['href']
                     self.data["halls"][loc_name] = {}
                     self.data["halls"][loc_name]["link"] = loc_url
@@ -108,68 +140,74 @@ class Scraper:
                     "0 p.m. – 12 a.m.": elems[2].text.strip()
                 }
 
-    """def parse_hall_menus(self, halls):
+    def parse_hall_menus(self, halls=["b-plate", "de-neve", "epic-covel", "epic-ackerman", "drey", "study", "rende", "b-cafe", "cafe-1919", "feast"]):
+        label_set = set()
+
         for hall in halls:
             
             hall_url = self.data["halls"][hall]["link"]
+
+            day_of_week = datetime.now().strftime("%A").lower()[0:3]
+
             try:
                 response = requests.get(hall_url)
                 response.raise_for_status()
                 hall_soup = BeautifulSoup(response.content, 'lxml')
                 
-                menu_items = hall_soup.find_all('div', class_='menu-item')
-                self.data["halls"][hall]["menu"] = [item.text.strip() for item in menu_items]
+                headings = hall_soup.find_all('div', {'id': 'breakfastmenu'}) + hall_soup.find_all('div', {'id': 'lunchmenu'}) + hall_soup.find_all('div', {'id': 'dinnermenu'})
+                
+                for heading in headings:
+                    meal_type = ''.join(heading.find_next('h2').text.split()).lower()
+                    if "menu" not in self.data["halls"][hall]:
+                        self.data["halls"][hall]["menu"] = {}
+                    if day_of_week not in self.data["halls"][hall]["menu"]:
+                        self.data["halls"][hall]["menu"][day_of_week] = {}
+                    self.data["halls"][hall]["menu"][day_of_week][meal_type] = {}
+
+                    container = heading.find_next('div', {'class': 'at-a-glance-menu__dining-location'})
+                    sections = [contents for contents in container.contents if contents.name == 'div']
+                    for section in sections:
+                        section_name = ''.join(section.find('h2').text.strip().lower().split())
+                        self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name] = {}
+                        section_list = section.find_next('div', {'class': 'recipe-list'})
+                        menu_items = section_list.find_all('section', {'class': 'recipe-card'})
+                        for item in menu_items:
+                            item_name = item.find('h3').text.strip()
+                            self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name][item_name] = {}
+                            item_icons = item.find_all('img')
+                            item_labels = [icon['title'].lower() for icon in item_icons]
+                            for label in self.labels:
+                                if label in item_labels:
+                                    self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name][item_name][label] = True
+                                    label_set.add(label)
+                                else:
+                                    self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name][item_name][label] = False
+                            
+                    print(self.data["halls"][hall]["menu"])
+
             except requests.RequestException as e:
-                print(f"Error fetching menu for {hall}: {e}")"""
+                print(f"Error fetching menu for {hall}: {e}")
+        
+        print(label_set)
 
-urls = {
-    "hours": "https://dining.ucla.edu/dining-locations/",
-    "b-plate": "https://dining.ucla.edu/bruin-plate/",
-    "de-neve": "https://dining.ucla.edu/de-neve-dining/",
-    "epic-covel": "https://dining.ucla.edu/epicuria-at-covel/", 
-    "epic-ackerman": "https://dining.ucla.edu/epicuria-at-ackerman/",
-    "drey": "https://dining.ucla.edu/the-drey/",
-    "study": "https://dining.ucla.edu/the-study-at-hedrick/",
-    "rende": "https://dining.ucla.edu/rendezvous/",
-    "b-cafe": "https://dining.ucla.edu/bruin-cafe/",
-    "cafe-1919": "https://dining.ucla.edu/cafe-1919/",
-    "feast": "https://dining.ucla.edu/spice-kitchen/",
-    "trucks": "https://dining.ucla.edu/meal-swipe-exchange/"
-}
-
-names_to_abbr = {
-    "Bruin Plate": "b-plate",
-    "De Neve Dining": "de-neve",
-    "Epicuria at Covel": "epic-covel",
-    "Epicuria at Ackerman": "epic-ackerman",
-    "The Drey": "drey",
-    "The Study at Hedrick": "study",
-    "Rendezvous": "rende",
-    "Bruin Caf\u00e9": "b-cafe",
-    "Caf\u00e9 1919": "cafe-1919",
-    "Spice Kitchen": "feast"
-}
+            
 
 testScraper = Scraper(urls)
-testScraper.fetch_page()
+"""testScraper.fetch_page()
 testScraper.parse_hall_hrs()
 testScraper.parse_truck_hrs()
-testScraper.save_data()
+testScraper.save_data()"""
+testScraper.parse_hall_menus()
 
 
 """
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong>Sun, May 25 </strong></strong></strong></td><td></td><td>Habibi Shack</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong>Mon,</strong></strong></strong> <strong><strong><strong>May 26 </strong></strong></strong></td><td>Perro 1-10 Tacos</td><td>Don Pollón</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong>Tue, May 27</strong></strong></strong></td><td>Heritage Kitchen</td><td>Rice Balls of Fire</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong>Wed, May 28</strong></strong></strong></td><td>Uncle Al’s Barbeque</td><td>Perro 1-10 Tacos</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong>T<strong>hu, May 29</strong></strong></strong></td><td>Kalamaki Greek Street Food</td><td>8E8 Thai Street Food</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong>Fri, May 30</strong></strong></strong></td><td>Vchos Pupusería Moderna</td><td>El Gallo Yucateco</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong><strong>Sat, May 24</strong></strong></strong></strong></td><td></td><td>Aloha Fridays</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong><strong><strong>Sun, May 25</strong></strong></strong></strong></strong></td><td></td><td></td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong>Mon, <strong><strong><strong><strong><strong>May 26</strong></strong></strong></strong></strong></strong></strong></td><td></td><td>BittieBitez Mini-Donuts</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong>Tue, <strong><strong><strong>May 27</strong></strong></strong></strong></strong></td><td>Cerda vega Tacos</td><td>BittieBitez Mini-Donuts</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong>Wed, <strong><strong><strong>May 28</strong></strong></strong></strong></strong></td><td>The Taco Cartel</td><td>Salpicón</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong>T<strong>hu, May 29</strong></strong></strong></strong></td><td>Pinch of Flavor</td><td>Salpicón</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong>Fri, <strong><strong><strong>May 30</strong></strong></strong></strong></strong></td><td>Pinch of Flavor</td><td>Salpicón</td></tr>
-<tr><td class="has-text-align-left" data-align="left"><strong><strong><strong><strong><strong>Sat, May 24</strong></strong></strong></strong></strong></td><td></td><td></td></tr>
-"""
+{'link': 'https://dining.ucla.edu/bruin-plate/', 'hours': {'sun': {'breakfast': '7:00 a.m. - 10:00 a.m.', 'lunch': '11:30 a.m. - 2:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': 'Closed'}}}
+{'link': 'https://dining.ucla.edu/de-neve-dining/', 'hours': {'sun': {'breakfast': '9 a.m. - 10:00 a.m.', 'lunch': '11:00 a.m. - 3:00 p.m.',  '11:00 a.m. - 3:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': '10:00 p.m. - 12:00 a.m.'}}}
+{'link': 'https://dining.ucla.edu/epicuria-at-covel/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
+{'link': 'https://dining.ucla.edu/epicuria-at-ackerman/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
+{'link': 'https://dining.ucla.edu/the-drey/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
+{'link': 'https://dining.ucla.edu/the-study-at-hedrick/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': '11:00 a.m. - 3:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': '9:00 p.m. - 12:00 a.m.'}}}
+{'link': 'https://dining.ucla.edu/rendezvous/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': '11:00 a.m. - 3:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': 'Closed'}}}
+{'link': 'https://dining.ucla.edu/bruin-cafe/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
+{'link': 'https://dining.ucla.edu/cafe-1919/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
+{'link': 'https://dining.ucla.edu/spice-kitchen/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}"""
