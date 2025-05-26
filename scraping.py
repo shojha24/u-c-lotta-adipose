@@ -19,7 +19,6 @@ urls = {
     "trucks": "https://dining.ucla.edu/meal-swipe-exchange/"
 }
 
-
 class Scraper:
     def __init__(self, urls=urls):
         self.urls = urls
@@ -171,19 +170,19 @@ class Scraper:
 
                         section_list = section.find_next('div', {'class': 'recipe-list'})
                         menu_items = section_list.find_all('section', {'class': 'recipe-card'})
-                        item_links = [f"https://dining.ucla.edu{item.find('a', href=True)['href']}"  for item in menu_items]
+                        item_links = [f"https://dining.ucla.edu{item.find('a', href=True)['href']}" for item in menu_items]
                         item_ids = [re.search(r'(\d+)', link).group(0) for link in item_links]
                         
                         self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name] = item_ids
 
                         for i in range(len(item_links)):
-                            self.parse_item_info(item_ids[i], item_links[i], menu_items[i])
+                            self.parse_item_info(item_ids[i], item_links[i])
                             
             except requests.RequestException as e:
                 print(f"Error fetching menu for {hall}: {e}")
 
 
-    def parse_item_info(self, id, url, item):
+    def parse_item_info(self, id, url):
         item_info = {}
 
         # Load existing data
@@ -196,16 +195,17 @@ class Scraper:
         except (FileNotFoundError, json.JSONDecodeError):
             items_data = {}
 
-        item_name = item.find('h3').text.strip()
-        item_info["name"] = item_name
-        item_icons = item.find_all('img')
-        item_labels = [icon['title'].lower() for icon in item_icons]
-        item_info["labels"] = item_labels
-
         try:
             response = requests.get(url)
             response.raise_for_status()
             soup = BeautifulSoup(response.content, 'lxml')
+
+            item_name = soup.find('h2', {'class': 'headline-text__lg'})
+            item_info["name"] = item_name.text.strip()
+
+            item_icons = soup.find('div', {'class': 'single-menu-page-content'}).find_all('img')
+            item_labels = [re.search(r'([^\/.]*)\.svg', icon['src']).group(1) for icon in item_icons]
+            item_info["labels"] = item_labels
 
             nutrition_facts = soup.find('div', {'id': 'nutrition'})
 
@@ -234,12 +234,51 @@ class Scraper:
                 print(f"Error saving data to menu_items.json: {e}")
                     
         except Exception as e:
+            self.parse_custom_items(id, url)
+            print(e)
             print(f"URL: {url}")
             self.error_urls.append(url)
-        
-    
 
+    def parse_custom_items(self, id, url):
+        item_info = {}
 
+        # Load existing data
+        try:
+            with open('menu_items.json', 'r') as file:
+                items_data = json.load(file)
+                if items_data.get(id):
+                    print(f"Nutrition info for recipe ID {id} already exists.")
+                    return
+        except (FileNotFoundError, json.JSONDecodeError):
+            items_data = {}
+
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.content, 'lxml')
+
+            item_name = soup.find("h2", "headline-text__lg").text.strip()
+            item_info["name"] = item_name
+
+            item_info["ingredients"] = {}
+            ingredient_sections = soup.find_all("div", {"class": "complex-ingredient-group"})
+
+            for section in ingredient_sections:
+                ing_section_label = section.find("h4").text.strip()
+                print(ing_section_label)
+
+                item_info["ingredients"][ing_section_label] = []
+
+                ingredients = section.find_all("li")
+                for ingredient in ingredients:
+                    ing_link = ingredient.find("a", href=True)['href']
+                    ing_id = re.search(r'(\d+)', ing_link).group(0) if ing_link else None
+                    item_info["ingredients"][ing_section_label].append(ing_id)
+                    self.parse_item_info(ing_id, f"https://dining.ucla.edu{ing_link}")
+
+        except Exception as e:
+            print(f"Error parsing custom item {id}: {e}")
+            return 
 
 testScraper = Scraper(urls)
 testScraper.fetch_page()
@@ -247,16 +286,3 @@ testScraper.parse_hall_hrs()
 testScraper.parse_truck_hrs()
 testScraper.parse_hall_menus()
 testScraper.save_data()
-print(testScraper.error_urls)
-
-"""
-{'link': 'https://dining.ucla.edu/bruin-plate/', 'hours': {'sun': {'breakfast': '7:00 a.m. - 10:00 a.m.', 'lunch': '11:30 a.m. - 2:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': 'Closed'}}}
-{'link': 'https://dining.ucla.edu/de-neve-dining/', 'hours': {'sun': {'breakfast': '9 a.m. - 10:00 a.m.', 'lunch': '11:00 a.m. - 3:00 p.m.',  '11:00 a.m. - 3:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': '10:00 p.m. - 12:00 a.m.'}}}
-{'link': 'https://dining.ucla.edu/epicuria-at-covel/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
-{'link': 'https://dining.ucla.edu/epicuria-at-ackerman/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
-{'link': 'https://dining.ucla.edu/the-drey/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
-{'link': 'https://dining.ucla.edu/the-study-at-hedrick/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': '11:00 a.m. - 3:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': '9:00 p.m. - 12:00 a.m.'}}}
-{'link': 'https://dining.ucla.edu/rendezvous/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': '11:00 a.m. - 3:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': 'Closed'}}}
-{'link': 'https://dining.ucla.edu/bruin-cafe/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
-{'link': 'https://dining.ucla.edu/cafe-1919/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}
-{'link': 'https://dining.ucla.edu/spice-kitchen/', 'hours': {'sun': {'breakfast': 'Closed', 'lunch': 'Closed', 'dinner': 'Closed', 'ext_dinner': 'Closed'}}}"""
