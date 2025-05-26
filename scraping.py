@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
 import json
+import re
 
 urls = {
     "hours": "https://dining.ucla.edu/dining-locations/",
@@ -23,6 +24,7 @@ class Scraper:
     def __init__(self, urls=urls):
         self.urls = urls
         self.curr_soup = None
+        self.error_urls = []
         self.load_data()
         self.names_to_abbr = {
             "Bruin Plate": "b-plate",
@@ -141,8 +143,6 @@ class Scraper:
                 }
 
     def parse_hall_menus(self, halls=["b-plate", "de-neve", "epic-covel", "epic-ackerman", "drey", "study", "rende", "b-cafe", "cafe-1919", "feast"]):
-        label_set = set()
-
         for hall in halls:
             
             hall_url = self.data["halls"][hall]["link"]
@@ -168,37 +168,86 @@ class Scraper:
                     sections = [contents for contents in container.contents if contents.name == 'div']
                     for section in sections:
                         section_name = ''.join(section.find('h2').text.strip().lower().split())
-                        self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name] = {}
+
                         section_list = section.find_next('div', {'class': 'recipe-list'})
                         menu_items = section_list.find_all('section', {'class': 'recipe-card'})
-                        for item in menu_items:
-                            item_name = item.find('h3').text.strip()
-                            self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name][item_name] = {}
-                            item_icons = item.find_all('img')
-                            item_labels = [icon['title'].lower() for icon in item_icons]
-                            for label in self.labels:
-                                if label in item_labels:
-                                    self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name][item_name][label] = True
-                                    label_set.add(label)
-                                else:
-                                    self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name][item_name][label] = False
-                            
-                    print(self.data["halls"][hall]["menu"])
+                        item_links = [f"https://dining.ucla.edu{item.find('a', href=True)['href']}"  for item in menu_items]
+                        item_ids = [re.search(r'(\d+)', link).group(0) for link in item_links]
+                        
+                        self.data["halls"][hall]["menu"][day_of_week][meal_type][section_name] = item_ids
 
+                        for i in range(len(item_links)):
+                            self.parse_item_info(item_ids[i], item_links[i], menu_items[i])
+                            
             except requests.RequestException as e:
                 print(f"Error fetching menu for {hall}: {e}")
-        
-        print(label_set)
 
-            
+
+    def parse_item_info(self, id, url, item):
+        item_info = {}
+
+        # Load existing data
+        try:
+            with open('menu_items.json', 'r') as file:
+                items_data = json.load(file)
+                if items_data.get(id):
+                    print(f"Nutrition info for recipe ID {id} already exists.")
+                    return
+        except (FileNotFoundError, json.JSONDecodeError):
+            items_data = {}
+
+        item_name = item.find('h3').text.strip()
+        item_info["name"] = item_name
+        item_icons = item.find_all('img')
+        item_labels = [icon['title'].lower() for icon in item_icons]
+        item_info["labels"] = item_labels
+
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.content, 'lxml')
+
+            nutrition_facts = soup.find('div', {'id': 'nutrition'})
+
+            serving_size_tag = soup.find('strong')
+            serving_size = serving_size_tag.next_sibling.strip()
+            item_info['serving_size'] = serving_size
+
+            calories_tag = nutrition_facts.find('p', {'class': 'single-calories'}).find('span')
+            calories = calories_tag.next_sibling.strip() if calories_tag.next_sibling else None
+            item_info['calories'] = calories
+
+            tags = nutrition_facts.find_all('span')[1:]
+            for tag in tags:
+                tag_val = tag.next_sibling.strip()
+                percent_tag = tag.find_next('td').text.strip() if tag.find_next('td') else None
+                if tag_val:
+                    item_info[tag.text.strip().lower()] = [tag_val, percent_tag]
+
+            # Save updated data - FIXED SECTION
+            try:
+                items_data[id] = item_info
+                with open('menu_items.json', 'w') as file:  # Open in write mode AFTER loading data
+                    json.dump(items_data, file, indent=4)
+                print(f"Data saved to menu_items.json")
+            except IOError as e:
+                print(f"Error saving data to menu_items.json: {e}")
+                    
+        except Exception as e:
+            print(f"URL: {url}")
+            self.error_urls.append(url)
+        
+    
+
+
 
 testScraper = Scraper(urls)
-"""testScraper.fetch_page()
+testScraper.fetch_page()
 testScraper.parse_hall_hrs()
 testScraper.parse_truck_hrs()
-testScraper.save_data()"""
 testScraper.parse_hall_menus()
-
+testScraper.save_data()
+print(testScraper.error_urls)
 
 """
 {'link': 'https://dining.ucla.edu/bruin-plate/', 'hours': {'sun': {'breakfast': '7:00 a.m. - 10:00 a.m.', 'lunch': '11:30 a.m. - 2:00 p.m.', 'dinner': '5:00 p.m. - 9:00 p.m.', 'ext_dinner': 'Closed'}}}
