@@ -1,3 +1,6 @@
 Include
 Lib
 Scripts
+.env
+.aws
+ScraperKey.pem
