@@ -51,7 +51,6 @@ class UCLADiningScraper:
     def __init__(self):
         self.current_soup: Optional[BeautifulSoup] = None
         self.dining_data = self._initialize_dining_data()
-        self.menu_items = self._initialize_menu_items()
         
     def _initialize_dining_data(self) -> Dict[str, Any]:
         """Initialize the main dining data structure."""
@@ -59,46 +58,32 @@ class UCLADiningScraper:
             "halls": {},
             "trucks": {},
             "ASUCLA": {},
-            "last_updated": None
-        }
-    
-    def _initialize_menu_items(self) -> Dict[str, Any]:
-        """Initialize the menu items data structure with nested items."""
-        return {
             "items": {},
             "last_updated": None
         }
 
     # Data Management Methods
-    def save_to_local(self, dining_filename: str = 'dining_info.json', 
-                     items_filename: str = 'menu_items.json') -> bool:
+    def save_to_local(self, dining_filename: str = 'dining_info.json') -> bool:
         """Save data to JSON files with error handling."""
         try:
             self.dining_data["last_updated"] = datetime.now().isoformat()
-            self.menu_items["last_updated"] = datetime.now().isoformat()
 
             with open(dining_filename, 'w') as file:
                 json.dump(self.dining_data, file, indent=4)
-            
-            with open(items_filename, 'w') as file:
-                json.dump(self.menu_items, file, indent=4)
-                
-            logger.info(f"Data successfully saved to {dining_filename} and {items_filename}")
+                            
+            logger.info(f"Data successfully saved to {dining_filename}")
             return True
             
         except IOError as e:
             logger.error(f"Error saving data: {e}")
             return False
         
-    def save_to_s3_boto3(self, bucket_name: str = 'u-c-lotta-adipose', 
-                     dining_key: str = 'dining_info.json', 
-                     items_key: str = 'menu_items.json') -> bool:
+    def save_to_s3(self, bucket_name: str = 'u-c-lotta-adipose', 
+                     dining_key: str = 'dining_info.json') -> bool:
         """Save data to S3 using boto3."""
         try:
             # Install: pip install boto3
             self.dining_data["last_updated"] = datetime.now().isoformat()
-            self.menu_items["last_updated"] = datetime.now().isoformat()
-            
             s3_client = boto3.client('s3')
             
             # Convert to JSON and upload dining data
@@ -111,16 +96,6 @@ class UCLADiningScraper:
                 ContentType='application/json'
             )
             
-            # Convert to JSON and upload menu items
-            items_buffer = StringIO()
-            json.dump(self.menu_items, items_buffer, indent=4)
-            s3_client.put_object(
-                Bucket=bucket_name,
-                Key=items_key,
-                Body=items_buffer.getvalue(),
-                ContentType='application/json'
-            )
-            
             logger.info(f"Data successfully saved to S3: {bucket_name}")
             return True
             
@@ -128,16 +103,13 @@ class UCLADiningScraper:
             logger.error(f"Error saving to S3: {e}")
             return False
 
-    def load_from_local(self, dining_filename: str = 'dining_info.json', 
-                     items_filename: str = 'menu_items.json') -> bool:
+    def load_from_local(self, dining_filename: str = 'dining_info.json') -> bool:
         """Load from local files."""
 
         try:
             with open(dining_filename, 'r') as file:
                 self.dining_data = json.load(file)
                 
-            with open(items_filename, 'r') as file:
-                self.menu_items = json.load(file)
         except FileNotFoundError as e:
             logger.error(f"Error loading local files: {e}")
             return False
@@ -149,8 +121,7 @@ class UCLADiningScraper:
         return True
 
     def load_from_s3(self, bucket_name: str = 'u-c-lotta-adipose', 
-                        dining_key: str = 'dining_info.json', 
-                        items_key: str = 'menu_items.json') -> bool:
+                        dining_key: str = 'dining_info.json') -> bool:
         """Load from S3 using simple boto3 approach."""
         import boto3
         
@@ -160,11 +131,7 @@ class UCLADiningScraper:
             # Load dining data
             dining_response = s3_client.get_object(Bucket=bucket_name, Key=dining_key)
             self.dining_data = json.loads(dining_response['Body'].read().decode('utf-8'))
-            
-            # Load menu items
-            items_response = s3_client.get_object(Bucket=bucket_name, Key=items_key)
-            self.menu_items = json.loads(items_response['Body'].read().decode('utf-8'))
-            
+                        
             logger.info("Data successfully loaded from S3")
             return True
             
@@ -180,7 +147,7 @@ class UCLADiningScraper:
     
     def get_menu_items(self) -> Dict[str, Any]:
         """Get complete menu items data for API consumption."""
-        return self.menu_items.copy()
+        return self.dining_data["items"].copy()
     
     def get_hall_data(self, hall_name: str) -> Optional[Dict[str, Any]]:
         """Get specific hall data for API consumption."""
@@ -440,7 +407,7 @@ class UCLADiningScraper:
     def _scrape_menu_item(self, item_id: str, url: str) -> bool:
         """Scrape nutrition information for a menu item."""
         # Check if item already exists
-        if item_id in self.menu_items["items"]:
+        if item_id in self.dining_data["items"]:
             logger.debug(f"Item {item_id} already exists")
             return True
             
@@ -451,7 +418,7 @@ class UCLADiningScraper:
             
             item_info = self._parse_standard_item(soup)
             if item_info:
-                self.menu_items["items"][item_id] = item_info
+                self.dining_data["items"][item_id] = item_info
                 return True
             else:
                 return self._scrape_custom_item(item_id, url, soup)
@@ -549,7 +516,7 @@ class UCLADiningScraper:
                             # Recursively scrape ingredient
                             self._scrape_menu_item(ingredient_id, f"https://dining.ucla.edu{ingredient_link}")
             
-            self.menu_items["items"][item_id] = item_info
+            self.dining_data["items"][item_id] = item_info
             return True
             
         except Exception as e:
@@ -576,7 +543,7 @@ class UCLADiningScraper:
         self.load_from_s3()  # Load existing data first
         success = self.scrape_all_data()
         if success:
-            return self.save_to_s3_boto3()
+            return self.save_to_s3()
         return False
 
 
