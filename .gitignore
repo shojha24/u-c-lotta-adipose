@@ -4,3 +4,4 @@ Scripts
 .env
 .aws
 ScraperKey.pem
+ucla-dining-api/.serverless

@@ -1,0 +1,40 @@
+service: ucla-dining-api
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-west-2
+  stage: ${opt:stage, 'dev'}
+  environment:
+    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME}
+    S3_DATA_KEY: dining_info.json
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:HeadObject
+      Resource: 
+        - "arn:aws:s3:::${env:S3_BUCKET_NAME}/*"
+
+functions:
+  api:
+    handler: src.main.handler
+    timeout: 30
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /
+          method: ANY
+          cors: true
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false

@@ -97,6 +97,16 @@ class UCLADiningScraper:
             )
             
             logger.info(f"Data successfully saved to S3: {bucket_name}")
+
+            # Clear cache in api gateway after saving
+            api_client = boto3.client('apigateway')
+            api_client.flush_stage_cache(
+                restApiId='', # Replace with API ID
+                stageName='' # Replace with stage name
+            )
+
+            logger.info("API Gateway cache cleared successfully")
+
             return True
             
         except Exception as e:
