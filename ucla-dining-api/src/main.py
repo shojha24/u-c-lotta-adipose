@@ -2,7 +2,7 @@ import json
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-from src.handlers import halls, trucks, items
+from src.handlers import activity, halls, trucks, items
 from src.utils.response import create_error_response
 import logging
 
@@ -29,6 +29,15 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "ucla-dining-api"}
+
+# Activity endpoints
+@app.get("/activity")
+async def get_activity():
+    return await activity.get_all_activity()
+
+@app.get("/activity/{location_id}")
+async def get_activity(location_id: str):
+    return await activity.get_activity(location_id)
 
 # Halls endpoints
 @app.get("/halls")

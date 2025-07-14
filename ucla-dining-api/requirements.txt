@@ -4,3 +4,4 @@ boto3==1.39.3
 botocore==1.39.3
 uvicorn==0.24.0
 python-multipart==0.0.6
+requests==2.32.3
