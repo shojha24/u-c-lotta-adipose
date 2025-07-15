@@ -6,7 +6,7 @@ def create_response(data: Dict[str, Any], status_code: int = 200,
                    headers: Dict[str, str] = None) -> JSONResponse:
     """Create a standardized JSON response"""
     default_headers = {
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=600',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
         'Access-Control-Allow-Methods': 'GET,OPTIONS'
