@@ -1,3 +1,5 @@
+note: api is pretty limited during summer quarter, will have to see if it still brings full functionality for the dining halls that are open
+
 whats done:
 
 scraper functionality for retrieving menu items, nutrition info, metadata for 10 dining locations
@@ -10,6 +12,5 @@ todo:
 - add truck and ASUCLA menus/hours
 - add gym hours
 - create online api documentation
-- see if server-side caching messes with activity retrieval (at a glance, it shouldn't, but...)
 - make python package as api wrapper
 - make cool project with this!!
