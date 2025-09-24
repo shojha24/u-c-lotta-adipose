@@ -45,7 +45,7 @@ class UCLADiningScraper:
         "Rendezvous": "rende",
         "Bruin Café": "b-cafe",
         "Café 1919": "cafe-1919",
-        "Spice Kitchen at Bruin Bowl": "feast"
+        "Feast at Rieber": "feast"
     }
 
     def __init__(self):
@@ -370,9 +370,7 @@ class UCLADiningScraper:
             return
         
         menu_sections = (
-            soup.find_all('div', {'id': 'breakfastmenu'}) +
-            soup.find_all('div', {'id': 'lunchmenu'}) +
-            soup.find_all('div', {'id': 'dinnermenu'})
+            soup.find_all('div', {'class': 'anchor-float'})
         )
         
         for section in menu_sections:
@@ -551,9 +549,11 @@ class UCLADiningScraper:
     def update_and_save(self) -> bool:
         """Update all data and save to files."""
         self.load_from_s3()  # Load existing data first
+        #self.load_from_local()  # Load existing data first
         success = self.scrape_all_data()
         if success:
             return self.save_to_s3()
+            #return self.save_to_local()
         return False
 
 
