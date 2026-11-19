@@ -29,7 +29,7 @@ Set common shell variables for the commands below:
 ```bash
 export AWS_REGION="us-west-2"
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-export S3_BUCKET_NAME="u-c-lotta-adipose"
+export S3_BUCKET_NAME="u-c-lotta-adipose-bucket"
 export S3_DATA_KEY="dining-data.json"
 export STAGE="prod"
 export SCRAPER_FUNCTION_NAME="ucla-dining-scraper"
@@ -54,6 +54,8 @@ aws s3api put-public-access-block \
 ```
 
 Run the first scrape locally to bootstrap `dining-data.json` (gzipped) in S3. A cold first run fetches every uncached menu item and takes a few minutes; subsequent daily runs in Lambda load `dining-data.json` from S3 first, skip already-cached items, and finish much faster (well under Lambda's 15-minute limit).
+
+Note: I used conda instead of a venv due to my package/env management preferences
 
 ```bash
 python3 -m venv .venv
@@ -107,6 +109,28 @@ cd ucla-dining-api && serverless logs -f api --stage "$STAGE" --tail
 # Teardown (when pausing AWS usage):
 # S3_BUCKET_NAME="$S3_BUCKET_NAME" serverless remove --stage "$STAGE" --region "$AWS_REGION"
 ```
+
+### Rate-Limit & Cost Protection (Free)
+
+Cap API Gateway request rates on the deployed stage so traffic spikes receive `429 Too Many Requests` before invoking Lambda:
+
+```bash
+export REST_API_ID=$(aws apigateway get-rest-apis \
+  --region "$AWS_REGION" \
+  --query "items[?name=='${STAGE}-ucla-dining-api'].id" \
+  --output text)
+
+aws apigateway update-stage \
+  --rest-api-id "$REST_API_ID" \
+  --stage-name "$STAGE" \
+  --patch-operations \
+    op=replace,path='/*/*/throttling/rateLimit',value='10' \
+    op=replace,path='/*/*/throttling/burstLimit',value='20' \
+  --region "$AWS_REGION"
+```
+
+- **Lambda concurrency**: Check `aws lambda get-account-settings --region "$AWS_REGION" --query 'AccountLimit.ConcurrentExecutions'`. Sandbox/new accounts are already capped at `10` concurrent Lambdas account-wide (and AWS requires `10` unreserved executions, so do **not** set `reservedConcurrency` in `serverless.yml` on a 10-concurrency account). If your account quota is `1000`, you can add `reservedConcurrency: 5` under `functions.api` in `ucla-dining-api/serverless.yml`.
+- **Billing alert ($0)**: Create a `$5` monthly budget alert in **AWS Billing & Cost Management → Budgets** so AWS emails you immediately on unexpected spend.
 
 ---
 
@@ -190,11 +214,12 @@ aws lambda create-function \
 
 *(To update `scraper.py` later, rebuild `/tmp/scraper-lambda.zip` and run `aws lambda update-function-code --function-name "$SCRAPER_FUNCTION_NAME" --zip-file fileb:///tmp/scraper-lambda.zip --region "$AWS_REGION"`.)*
 
-Test invoking the scraper Lambda once manually:
+Test invoking the scraper Lambda once manually (pass `--cli-read-timeout 900` since the AWS CLI's default 60s timeout is shorter than a ~3-minute scrape and would otherwise trigger client retries):
 
 ```bash
 aws lambda invoke \
   --function-name "$SCRAPER_FUNCTION_NAME" \
+  --cli-read-timeout 900 \
   --region "$AWS_REGION" \
   /tmp/scraper-out.json && cat /tmp/scraper-out.json
 ```
@@ -292,7 +317,7 @@ CRON_TZ=America/Los_Angeles
 Because the API already sets `Cache-Control: public, max-age=<seconds_until_midnight_PT>` on menu/hall/item/truck/gym routes and `max-age=60` on `/activity`:
 
 1. Create a CloudFront distribution with your API Gateway invoke URL as the origin (origin path `/prod`).
-2. Use the managed **`CachingOptimized`** cache policy (or a custom policy that forwards query strings `date`, `meal`, `day`, `open`, `q`, `dietary`, `allergen`, `items` and respects origin `Cache-Control` headers).
+2. Create a **custom cache policy** that forwards query strings (`All`, or whitelist `date`, `meal`, `day`, `open`, `q`, `dietary`, `allergen`, `items`) and honors origin `Cache-Control` headers. *(Do not use the managed `CachingOptimized` policy as-is, since it excludes query strings from the cache key.)*
 3. This serves repeated requests from CloudFront's edge cache without invoking Lambda or S3 at all.
 
 ---
