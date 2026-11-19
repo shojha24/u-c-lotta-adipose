@@ -35,6 +35,5 @@ API accessible via `https://ddy58mflxj.execute-api.us-west-2.amazonaws.com/prod/
 
 ## Next Tasks (Todo)
 
-- [ ] Create online API documentation
 - [ ] Advertise!!
-- [ ] (Later) Add food truck menus and ASUCLA menus/hours
+- [ ] (Later) Add food truck menus and ASUCLA menus/hours (likely not scrape-able or accessible via external API, will likely be hardcoded)
