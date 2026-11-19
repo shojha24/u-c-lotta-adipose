@@ -1,5 +1,6 @@
 from typing import Dict, Any, Optional
 from fastapi import HTTPException
+from zoneinfo import ZoneInfo
 from src.services.s3_service import s3_service
 from src.utils.validation import validate_hall_id, validate_date
 from src.utils.response import create_response
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 HALL_NAME_MAP = {
     'b-cafe': 'Bruin Cafe',
+    'bruin-bowl': 'Bruin Bowl',
     'cafe-1919': 'Cafe 1919',
     'epic-covel': 'Epicuria at Covel',
     'de-neve': 'De Neve Dining',
@@ -181,7 +183,7 @@ async def get_hall_menu_by_date(hall_id: str, date: str) -> Dict[str, Any]:
 def is_hall_currently_open(hall: Dict[str, Any]) -> bool:
     """Check if hall is currently open"""
     try:
-        now = datetime.now()
+        now = datetime.now(ZoneInfo("America/Los_Angeles"))
         current_day = now.strftime('%a').lower()
         current_time = now.strftime('%H:%M')
         

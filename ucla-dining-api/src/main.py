@@ -1,8 +1,8 @@
 import json
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-from src.handlers import activity, halls, trucks, items
+from src.handlers import activity, halls, trucks, items, gyms
 from src.utils.response import create_error_response
 import logging
 
@@ -32,11 +32,11 @@ async def health_check():
 
 # Activity endpoints
 @app.get("/activity")
-async def get_activity():
+async def get_all_activity():
     return await activity.get_all_activity()
 
 @app.get("/activity/{location_id}")
-async def get_activity(location_id: str):
+async def get_location_activity(location_id: str):
     return await activity.get_activity(location_id)
 
 # Halls endpoints
@@ -65,6 +65,19 @@ async def get_hall_menu_by_date(hall_id: str, date: str):
 async def get_trucks():
     return await trucks.get_trucks()
 
+# Gyms endpoints
+@app.get("/gyms")
+async def get_all_gyms():
+    return await gyms.get_all_gyms()
+
+@app.get("/gyms/{gym_id}")
+async def get_gym(gym_id: str):
+    return await gyms.get_gym(gym_id)
+
+@app.get("/gyms/{gym_id}/hours")
+async def get_gym_hours(gym_id: str, day: str = None):
+    return await gyms.get_gym_hours(gym_id, day)
+
 # Items endpoint
 @app.get("/items/{item_id}")
 async def get_item(item_id: str):
@@ -74,6 +87,11 @@ async def get_item(item_id: str):
 @app.get("/search")
 async def search_items(q: str = None, dietary: str = None, allergen: str = None):
     return await items.search_items(q, dietary, allergen)
+
+# Nutrition calculator endpoint
+@app.get("/nutrition/calculate")
+async def calculate_nutrition(items_param: str = Query(..., alias="items")):
+    return await items.calculate_nutrition(items_param)
 
 # Exception handler
 @app.exception_handler(Exception)

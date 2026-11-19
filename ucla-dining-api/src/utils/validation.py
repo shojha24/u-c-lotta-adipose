@@ -3,22 +3,26 @@ from datetime import datetime
 from typing import List
 
 VALID_HALLS = [
-    'b-cafe', 'cafe-1919', 'epic-covel', 'de-neve', 
-    'epic-ackerman', 'rende', 'feast', 'b-plate', 
+    'b-cafe', 'bruin-bowl', 'cafe-1919', 'epic-covel', 'de-neve',
+    'epic-ackerman', 'rende', 'feast', 'b-plate',
     'drey', 'study'
 ]
 
 VALID_ACTIVITY_LOCATIONS = [
-    "b-cafe", "cafe-1919", "epic-covel", "de-neve", 
-    "epic-ackerman", "rende", "feast", "b-plate", 
-    "drey", "study", "b-fit", "wooden"
+    "b-cafe", "bruin-bowl", "cafe-1919", "epic-covel", "de-neve",
+    "epic-ackerman", "rende", "feast", "b-plate",
+    "drey", "study", "b-fit", "wooden", "kinross"
 ]
 
-VALID_MEALS = ['breakfast', 'lunch', 'dinner', 'ext_dinner']
+VALID_GYMS = ['b-fit', 'wooden', 'kinross']
 
 def validate_hall_id(hall_id: str) -> bool:
     """Validate hall ID"""
     return hall_id in VALID_HALLS
+
+def validate_gym_id(gym_id: str) -> bool:
+    """Validate gym ID"""
+    return gym_id in VALID_GYMS
 
 def validate_activity_location(location: str) -> bool:
     """Validate activity location"""
@@ -36,5 +40,5 @@ def validate_date(date: str) -> bool:
         return False
 
 def validate_meal(meal: str) -> bool:
-    """Validate meal type"""
-    return meal in VALID_MEALS
+    """Validate meal type (dynamic, non-hardcoded meal period key)"""
+    return bool(meal and re.match(r'^[a-z0-9_]+$', meal.strip().lower()))

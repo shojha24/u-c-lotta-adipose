@@ -11,14 +11,15 @@ logger = logging.getLogger(__name__)
 
 ACTIVITY_MAP = {
     "b-cafe": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=867",
-    "cafe-1919": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=867",
+    "cafe-1919": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=873",
+    "bruin-bowl": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=868",
     "epic-covel": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=864",
     "de-neve": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=866",
-    "epic-ackerman": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=874",
+    "epic-ackerman": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=8742",
     "rende": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=870",
     "feast": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=872",
-    "b-plate": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=864",
-    "drey": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=869",
+    "b-plate": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=865",
+    "drey": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=8692",
     "study": "https://dining.ucla.edu/wp-content/plugins/activity-meter/activity_ajax.php?location_id=871",
     "b-fit": "https://goboardapi.azurewebsites.net/api/FacilityCount/GetCountsByAccount?AccountAPIKey=73829a91-48cb-4b7b-bd0b-8cf4134c04cd",
     "wooden": "https://goboardapi.azurewebsites.net/api/FacilityCount/GetCountsByAccount?AccountAPIKey=73829a91-48cb-4b7b-bd0b-8cf4134c04cd",
@@ -76,7 +77,7 @@ async def get_all_activity() -> Dict[str, Any]:
                 logger.warning(f"Activity data not found for {location_id}")
                 results[location_id] = "Not available"
 
-        return create_response(results)
+        return create_response(results, cache_ttl=60)
 
     except requests.RequestException as e:
         logger.error(f"Error fetching activity data: {str(e)}")
@@ -123,12 +124,12 @@ async def get_activity(location_id: str) -> Dict[str, Any]:
                         'capacity': capacity
                     }
 
-            return create_response({location_id: areas})
+            return create_response({location_id: areas}, cache_ttl=60)
         
         else:
             activity_match = re.search(r'(\d+%)', response.text)
             if activity_match:
-                return create_response({location_id: activity_match.group(1)})
+                return create_response({location_id: activity_match.group(1)}, cache_ttl=60)
             else:
                 raise HTTPException(status_code=500, detail="Activity data not found")
     

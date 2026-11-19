@@ -5,3 +5,9 @@ Scripts
 .aws
 ScraperKey.pem
 ucla-dining-api/.serverless
+
+resources
+
+__pycache__/
+
+node_modules/
