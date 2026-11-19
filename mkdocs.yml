@@ -1,0 +1,49 @@
+site_name: UCLA Dining API
+site_description: REST API documentation for UCLA dining hall menus, hours, food trucks, gyms, and nutrition data.
+repo_name: u-c-lotta-adipose
+docs_dir: docs
+site_dir: _build/html
+use_directory_urls: false
+exclude_docs: |
+  generate_openapi.py
+  requirements.txt
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+
+nav:
+  - Home: index.md
+  - API Endpoints: endpoints.md
+  - OpenAPI Reference: reference.md
+  - Architecture & Caching: architecture.md
+  - Publishing to Read the Docs: publishing.md

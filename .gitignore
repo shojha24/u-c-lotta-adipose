@@ -9,5 +9,7 @@ ucla-dining-api/.serverless
 resources
 
 __pycache__/
+_build/
+ucla-dining-api/node_modules/
 
 node_modules/

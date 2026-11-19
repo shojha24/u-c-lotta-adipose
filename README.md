@@ -3,7 +3,7 @@
 
 API accessible via `https://ddy58mflxj.execute-api.us-west-2.amazonaws.com/prod/`
 
-## Current Functionality
+## Current Functionality (WE NOW HAVE [DOCS](https://u-c-lotta-adipose.readthedocs.io/en/main/index.html) FOR MORE INFO!)
 
 ### Scraper ([scraper.py](scraper.py))
 - **11 UCLA dining locations**: `b-plate`, `de-neve`, `epic-covel`, `epic-ackerman`, `drey`, `study`, `rende`, `b-cafe`, `cafe-1919`, `feast` (Spice Kitchen), and `bruin-bowl`.

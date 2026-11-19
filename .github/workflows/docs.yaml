@@ -1,0 +1,56 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "ucla-dining-api/src/main.py"
+      - ".github/workflows/docs.yaml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "ucla-dining-api/src/main.py"
+      - ".github/workflows/docs.yaml"
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    # Pull requests from forks do not have access to repository secrets.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install documentation & API schema dependencies
+        run: pip install -r docs/requirements.txt -r ucla-dining-api/requirements.txt
+
+      - name: Generate OpenAPI schema & reference page
+        run: python docs/generate_openapi.py
+
+      - name: Build static HTML docs
+        run: mkdocs build --strict -d _build/html
+
+      - name: Upload to Read the Docs
+        uses: readthedocs/upload-action@v1
+        with:
+          token: ${{ secrets.READTHEDOCS_TOKEN }}
+          project-slug: u-c-lotta-adipose
+          html: _build/html
+          privacy-level: public
+
+      - name: Update stable version on release tags
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: readthedocs/upload-action@v1
+        with:
+          token: ${{ secrets.READTHEDOCS_TOKEN }}
+          project-slug: u-c-lotta-adipose
+          html: _build/html
+          version-name: stable
+          privacy-level: public
